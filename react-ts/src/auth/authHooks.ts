@@ -1,56 +1,63 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import * as authService from '../auth/authService';
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import * as authService from "../auth/authService";
+import { useNavigate } from "react-router-dom";
 
 // Register new user hook
 export const useRegister = () => {
-  const queryClient = useQueryClient();
+	const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: authService.register,
-    onSuccess: (data) => {
-      localStorage.setItem('authToken', data.token);
+	return useMutation({
+		mutationFn: authService.register,
+		onSuccess: (data) => {
+			localStorage.setItem("authToken", data.token);
 
-      // Update me cache (currunt user)
-      queryClient.setQueryData(['me'], data.user);
-    },
-  });
+			// Update me cache (currunt user)
+			queryClient.setQueryData(["me"], data.user);
+		},
+	});
 };
 
 // User Loggin hook
 export const useLogin = () => {
-  const queryClient = useQueryClient();
+	const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: authService.login,
-    onSuccess: (data) => {
-      localStorage.setItem('authToken', data.token);
+	return useMutation({
+		mutationFn: authService.login,
+		onSuccess: (data) => {
+			localStorage.setItem("authToken", data.token);
 
-      //Update me cache (currunt user)
-      queryClient.setQueryData(['me'], data.user);
-    },
-  });
+			//Update me cache (currunt user)
+			queryClient.setQueryData(["me"], data.user);
+		},
+	});
 };
 
 // Get currunt user hook
 export const useUser = () => {
-  return useQuery({
-    queryKey: ['me'],
-    queryFn: authService.getCurruntUser,
-    retry: false,
-  });
+	const token = localStorage.getItem("authToken");
+
+	return useQuery({
+		queryKey: ["me"],
+		queryFn: authService.getCurruntUser,
+		enabled: !!token && token !== "undefined",
+		retry: false,
+	});
 };
 
 // Logout currunt user hook
 export const useLogout = () => {
-  const queryClient = useQueryClient();
+	const navigate = useNavigate();
+	const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: authService.logout,
-    onSuccess: () => {
-      localStorage.removeItem('authToken');
+	return useMutation({
+		mutationFn: authService.logout,
+		onSuccess: () => {
+			localStorage.removeItem("authToken");
 
-      // Clear me cache (currunt user)
-      queryClient.setQueryData(['me'], null);
-    },
-  });
+			// Clear me cache (currunt user)
+			queryClient.setQueryData(["me"], null);
+
+			navigate("/login");
+		},
+	});
 };
